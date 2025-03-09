@@ -28,7 +28,7 @@ export default function Index() {
   return (
     <main className="bg-cyan-900 text-slate-200">
       <Navbar />
-      <main className="pt-16 max-w-[1920px] mx-auto min-h-screen overflow-x-hidden">
+      <main className="pt-16 max-w-[1920px] mx-auto h-fit min-h-screen overflow-x-hidden">
         <Outlet />
         <Footer />
       </main>
