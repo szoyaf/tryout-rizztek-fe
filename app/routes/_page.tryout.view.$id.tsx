@@ -1,5 +1,14 @@
-import { LoaderFunctionArgs, redirect } from "@remix-run/node";
-import { Link, useLoaderData } from "@remix-run/react";
+import {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  redirect,
+} from "@remix-run/node";
+import {
+  Form,
+  Link,
+  useLoaderData,
+  useNavigation,
+} from "@remix-run/react";
 import { getUserData } from "~/auth/getUserData";
 import { Submission, Tryout, User } from "~/auth/interface";
 import { token } from "~/auth/token";
@@ -7,6 +16,44 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardDescription } from "~/components/ui/card";
 import { getSubmission } from "~/hooks/submissions";
 import { getTryout } from "~/hooks/tryouts";
+
+export async function action({ request }: ActionFunctionArgs) {
+  const cookieHeader = request.headers.get("Cookie");
+  const t = await token.parse(cookieHeader);
+
+  const formData = await request.formData();
+  const userId = formData.get("userId") as string;
+  const tryoutId = formData.get("tryoutId") as string;
+
+  try {
+    const API_URL = process.env.SERVER_URL;
+
+    const response = await fetch(`${API_URL}api/submission`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${t}`,
+      },
+      body: JSON.stringify({
+        userId,
+        tryoutId,
+      }),
+    });
+
+    if (!response.ok) {
+      console.error("Failed to create submission:", response.status);
+      return null;
+    }
+
+    const data = await response.json();
+    console.log("Submission created:", data);
+
+    return redirect(`/tryout/attempt/${tryoutId}`);
+  } catch (error) {
+    console.error("Error creating submission:", error);
+    return null;
+  }
+}
 
 export async function loader(args: LoaderFunctionArgs) {
   const cookieHeader = args.request.headers.get("Cookie");
@@ -30,17 +77,27 @@ export async function loader(args: LoaderFunctionArgs) {
   }
 
   const submission = await getSubmission(t, tryout.id, user.id);
+  console.log("Submission:", submission);
 
   return {
+    user,
     tryout,
     submission,
   };
 }
 
 export default function Index() {
-  const data = useLoaderData<{ tryout: Tryout; submission: Submission }>();
+  const data = useLoaderData<{
+    user: User;
+    tryout: Tryout;
+    submission: Submission;
+  }>();
   const { tryout } = data;
   const { submission } = data;
+  const { user } = data;
+  const navigation = useNavigation();
+
+  const isSubmitting = navigation.state === "submitting";
 
   return (
     <div className="flex flex-col gap-3 justify-start items-center w-full h-fit py-10">
@@ -77,14 +134,21 @@ export default function Index() {
               })}
             </p>
           </div>
-          <Link to={`/tryout/attempt/${tryout.id}`}>
+          <Form method="post">
+            <input type="hidden" name="userId" value={user.id} />
+            <input type="hidden" name="tryoutId" value={tryout.id} />
             <Button
+              type="submit"
               variant="default"
-              disabled={new Date() > new Date(tryout.endAt)}
+              disabled={new Date() > new Date(tryout.endAt) || isSubmitting || !!submission.id}
             >
-              Attempt
+              {submission.id
+                ? "Continue Attempt"
+                : isSubmitting
+                ? "Starting..."
+                : "Attempt"}
             </Button>
-          </Link>
+          </Form>
         </CardContent>
 
         <CardContent className="flex flex-col items-center justify-center  mt-6">
@@ -94,7 +158,7 @@ export default function Index() {
               <div className="space-y-1 text-sm bg-cyan-100 border-2 border-cyan-950 rounded-lg w-[80%]">
                 <div className="grid grid-cols-4 text-sm p-4 border-b-2 border-b-cyan-950">
                   <p className="col-span-3">State</p>
-                  <p>{submission.score}/100.00</p>
+                  <p>Grade/100.00</p>
                 </div>
 
                 <div className="grid grid-cols-4 text-sm p-4">
@@ -118,7 +182,7 @@ export default function Index() {
                       </p>
                     )}
                   </div>
-                  <p>86.00</p>
+                  <p>{submission.score}</p>
                 </div>
               </div>
             </>

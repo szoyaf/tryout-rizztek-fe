@@ -1,6 +1,7 @@
 export interface ApiResponse<T> {
   ok: boolean;
   message?: string;
+  error?: string;
 }
 
 export interface UserData {
