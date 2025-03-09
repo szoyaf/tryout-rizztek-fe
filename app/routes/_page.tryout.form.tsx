@@ -23,14 +23,15 @@ interface Question {
   text: string;
   type: string;
   choices: string[];
+  score: number;
 }
-
 export default function Index() {
   const [questions, setQuestions] = useState<Question[]>([
     {
       text: "",
       type: "Multiple Choice",
       choices: [""],
+      score: 0,
     },
   ]);
   const [openDate, setOpenDate] = useState<Date | undefined>(undefined);
@@ -86,6 +87,7 @@ export default function Index() {
         text: "",
         type: "Multiple Choice",
         choices: [""],
+        score: 0,
       },
     ]);
   };
@@ -109,15 +111,15 @@ export default function Index() {
               <SelectValue placeholder="Select a category" />
             </SelectTrigger>
             <SelectContent>
-                <SelectItem value="programming">Programming</SelectItem>
-                <SelectItem value="math">Math</SelectItem>
-                <SelectItem value="science">Science</SelectItem>
-                <SelectItem value="history">History</SelectItem>
-                <SelectItem value="english">English</SelectItem>
-                <SelectItem value="geography">Geography</SelectItem>
-                <SelectItem value="art">Art</SelectItem>
-                <SelectItem value="music">Music</SelectItem>
-                <SelectItem value="sports">Sports</SelectItem>
+              <SelectItem value="programming">Programming</SelectItem>
+              <SelectItem value="math">Math</SelectItem>
+              <SelectItem value="science">Science</SelectItem>
+              <SelectItem value="history">History</SelectItem>
+              <SelectItem value="english">English</SelectItem>
+              <SelectItem value="geography">Geography</SelectItem>
+              <SelectItem value="art">Art</SelectItem>
+              <SelectItem value="music">Music</SelectItem>
+              <SelectItem value="sports">Sports</SelectItem>
             </SelectContent>
           </Select>
 
@@ -126,7 +128,11 @@ export default function Index() {
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant={"outline"} className="w-fit">
-                  {openDate ? format(openDate, "PPP") : <span>Pick a date</span>}
+                  {openDate ? (
+                    format(openDate, "PPP")
+                  ) : (
+                    <span>Pick a date</span>
+                  )}
                   <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                 </Button>
               </PopoverTrigger>
@@ -178,7 +184,11 @@ export default function Index() {
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant={"outline"} className="w-fit">
-                  {closeDate ? format(closeDate, "PPP") : <span>Pick a date</span>}
+                  {closeDate ? (
+                    format(closeDate, "PPP")
+                  ) : (
+                    <span>Pick a date</span>
+                  )}
                   <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                 </Button>
               </PopoverTrigger>
@@ -302,6 +312,10 @@ export default function Index() {
                 </Button>
               </div>
             )}
+            <div className="flex flex-row gap-5 justify-start items-center w-full mt-4">
+              <Label>Score</Label>
+              <Input type="number" placeholder="Score" className="w-1/4" />
+            </div>
           </CardContent>
         ))}
 

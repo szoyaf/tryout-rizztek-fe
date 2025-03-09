@@ -3,12 +3,7 @@ import {
   LoaderFunctionArgs,
   redirect,
 } from "@remix-run/node";
-import {
-  Form,
-  Link,
-  useLoaderData,
-  useNavigation,
-} from "@remix-run/react";
+import { Form, Link, useLoaderData, useNavigation } from "@remix-run/react";
 import { getUserData } from "~/auth/getUserData";
 import { Submission, Tryout, User } from "~/auth/interface";
 import { token } from "~/auth/token";
@@ -148,7 +143,11 @@ export default function Index() {
             <Button
               type="submit"
               variant="default"
-              disabled={new Date() > new Date(tryout.endAt) || isSubmitting || !!submission.id}
+              disabled={
+                new Date() > new Date(tryout.endAt) ||
+                isSubmitting ||
+                !!submission.id
+              }
             >
               {submission.id
                 ? "Continue Attempt"
@@ -195,7 +194,13 @@ export default function Index() {
               </div>
             </>
           )}
-            <p>Your final grade: {submission.score != null ? (submission.score / totalScore) * 100 : 0}%</p>
+          <p>
+            Your final grade:{" "}
+            {submission.score != null
+              ? (submission.score / totalScore) * 100
+              : 0}
+            %
+          </p>
           <Link to="/">
             <Button variant="default">Back to course</Button>
           </Link>
