@@ -1,3 +1,4 @@
+import { Link } from "@remix-run/react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
@@ -26,6 +27,12 @@ export default function Index() {
           <Button className="mt-4 w-full" variant="default">
             Register
           </Button>
+          <p className="text-sm mt-2">Already have an account?</p>
+          <Link to="/login">
+            <Button className="mt-1 w-full" variant="ghost">
+              Sign in
+            </Button>
+          </Link>
         </CardContent>
       </Card>
     </div>

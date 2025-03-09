@@ -1,5 +1,5 @@
 import { Link, useLoaderData } from "@remix-run/react";
-// import { userData } from "~/auth/getUserData";
+import { UserData } from "~/auth/interface";
 import { Button } from "../../ui/button";
 
 export const Navbar = () => {
@@ -20,17 +20,10 @@ export const Navbar = () => {
     }
   };
 
-  // const data: {
-  //   isLoggedIn: boolean;
-  //   userData: userData;
-  // } = useLoaderData();
-
-  const data = {
-    isLoggedIn: true,
-    userData: {
-      name: "John Doe",
-    },
-  };
+  const data: {
+    isLoggedIn: boolean;
+    userData: UserData;
+  } = useLoaderData();
 
   return (
     <nav className="fixed top-0 shadow-md p-4 px-5 sm:px-20 w-full bg-cyan-950 z-50">
