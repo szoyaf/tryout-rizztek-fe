@@ -77,12 +77,18 @@ export async function loader(args: LoaderFunctionArgs) {
   }
 
   const submission = await getSubmission(t, tryout.id, user.id);
-  console.log("Submission:", submission);
+
+  let totalScore = 0;
+
+  for (const question of tryout.questions) {
+    totalScore += question.score;
+  }
 
   return {
     user,
     tryout,
     submission,
+    totalScore,
   };
 }
 
@@ -91,10 +97,12 @@ export default function Index() {
     user: User;
     tryout: Tryout;
     submission: Submission;
+    totalScore: number;
   }>();
   const { tryout } = data;
   const { submission } = data;
   const { user } = data;
+  const { totalScore } = data;
   const navigation = useNavigation();
 
   const isSubmitting = navigation.state === "submitting";
@@ -158,7 +166,7 @@ export default function Index() {
               <div className="space-y-1 text-sm bg-cyan-100 border-2 border-cyan-950 rounded-lg w-[80%]">
                 <div className="grid grid-cols-4 text-sm p-4 border-b-2 border-b-cyan-950">
                   <p className="col-span-3">State</p>
-                  <p>Grade/100.00</p>
+                  <p>Grade/{totalScore}</p>
                 </div>
 
                 <div className="grid grid-cols-4 text-sm p-4">
@@ -187,6 +195,7 @@ export default function Index() {
               </div>
             </>
           )}
+            <p>Your final grade: {submission.score != null ? (submission.score / totalScore) * 100 : 0}%</p>
           <Link to="/">
             <Button variant="default">Back to course</Button>
           </Link>
