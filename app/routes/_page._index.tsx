@@ -1,6 +1,25 @@
-import { Link } from "@remix-run/react";
+import { LoaderFunctionArgs } from "@remix-run/node";
+import { Link, redirect } from "@remix-run/react";
+import { getUserData } from "~/auth/getUserData";
+import { token } from "~/auth/token";
 import { Button } from "~/components/ui/button";
 import { Card, CardDescription, CardTitle } from "~/components/ui/card";
+
+export async function loader(args: LoaderFunctionArgs) {
+  const cookieHeader = args.request.headers.get("Cookie");
+  const t = await token.parse(cookieHeader);
+
+  const user = await getUserData(t);
+
+  if (!user) {
+    return redirect('/login');
+  }
+
+  return {
+    ...user,
+    t
+  };
+}
 
 export default function Index() {
   return (

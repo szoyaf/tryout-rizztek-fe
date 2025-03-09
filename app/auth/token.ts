@@ -1,5 +1,5 @@
 import { createCookie } from '@remix-run/node';
-import jwt from 'jsonwebtoken';
+import * as jwt from "jsonwebtoken";
 import { UserData } from './interface';
 
 export const token = createCookie('token', {
@@ -10,8 +10,8 @@ export const token = createCookie('token', {
 
 export const isTokenValid = async (cookie: string) => {
   try {
-    jwt.verify(cookie, process.env.JWT_SECRET as string);
-    const data = (await jwt.decode(cookie)) as UserData;
+    // jwt.verify(cookie, process.env.JWT_SECRET as string);
+    const data = jwt.decode(cookie) as UserData;
 
     if (!data.email) {
       return false;

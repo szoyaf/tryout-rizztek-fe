@@ -33,5 +33,5 @@ export default function Index() {
         <Footer />
       </main>
     </main>
-  );
+  );  
 }
