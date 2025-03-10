@@ -1,4 +1,9 @@
-import { ActionFunctionArgs, json, redirect } from "@remix-run/node";
+import {
+  ActionFunctionArgs,
+  json,
+  LoaderFunctionArgs,
+  redirect,
+} from "@remix-run/node";
 import {
   Form,
   useActionData,
@@ -12,10 +17,10 @@ import {
   PlusCircleIcon,
   TrashIcon,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { token } from "~/auth/token";
-import { createTryout } from "~/hooks/tryouts";
+import { getTryout, updateTryout } from "~/hooks/tryouts";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardDescription } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
@@ -35,7 +40,7 @@ import {
 import { Calendar } from "~/components/ui/calendar";
 import { getUserData } from "~/auth/getUserData";
 
-export async function loader({ request }: ActionFunctionArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const cookieHeader = request.headers.get("Cookie");
   const t = await token.parse(cookieHeader);
   const user = await getUserData(t);
@@ -44,18 +49,43 @@ export async function loader({ request }: ActionFunctionArgs) {
     return redirect("/login");
   }
 
-  return {
-    userId: user.id,
-    t,
-  };
+  const tryoutId = params.id;
+  if (!tryoutId) {
+    return redirect("/");
+  }
+
+  try {
+    const tryout = await getTryout(t, tryoutId);
+
+    if (!tryout) {
+      return redirect("/");
+    }
+
+    if (tryout.userId !== user.id) {
+      return redirect("/");
+    }
+
+    return {
+      userId: user.id,
+      t,
+      tryout,
+    };
+  } catch (error) {
+    console.error("Error fetching tryout:", error);
+    return redirect("/");
+  }
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const cookieHeader = request.headers.get("Cookie");
   const t = await token.parse(cookieHeader);
+  const tryoutId = params.id;
+
+  if (!tryoutId) {
+    return Response.json({ success: false, message: "Invalid tryout ID" });
+  }
 
   const formData = await request.formData();
-  const userId = formData.get("userId") as string;
   const title = formData.get("title") as string;
   const description = formData.get("description") as string;
   const category = formData.get("category") as string;
@@ -76,15 +106,14 @@ export async function action({ request }: ActionFunctionArgs) {
   const endAt = closeDateObj.toISOString();
 
   const duration = parseInt(formData.get("duration") as string, 10);
-
   const questions = JSON.parse(formData.get("questions") as string);
 
   try {
-    const response = await createTryout(
+    const response = await updateTryout(
       t,
+      tryoutId,
       title,
       description,
-      userId,
       category,
       startAt,
       endAt,
@@ -93,16 +122,16 @@ export async function action({ request }: ActionFunctionArgs) {
     );
 
     if (!response) {
-      return json({
+      return Response.json({
         success: false,
-        message: "Failed to create tryout",
+        message: "Failed to update tryout",
       });
     }
 
     return redirect("/");
   } catch (error) {
-    console.error("Error creating tryout:", error);
-    return json({
+    console.error("Error updating tryout:", error);
+    return Response.json({
       success: false,
       message:
         error instanceof Error ? error.message : "An unexpected error occurred",
@@ -121,10 +150,13 @@ interface Question {
   }[];
 }
 
-export default function Index() {
-  const loaderData = useLoaderData<{ userId: string; t: string }>();
-  const { userId } = loaderData;
-  const { t } = loaderData;
+export default function UpdateTryout() {
+  const loaderData = useLoaderData<{
+    userId: string;
+    t: string;
+    tryout: any;
+  }>();
+  const { userId, t, tryout } = loaderData;
 
   const actionData = useActionData<{ success: boolean; message: string }>();
   const navigation = useNavigation();
@@ -140,9 +172,7 @@ export default function Index() {
   const [closeDate, setCloseDate] = useState<Date | undefined>(undefined);
   const [closeHour, setCloseHour] = useState<string>("12");
   const [closeMinute, setCloseMinute] = useState<string>("00");
-
   const [duration, setDuration] = useState<number>(0);
-
   const [questions, setQuestions] = useState<Question[]>([
     {
       text: "",
@@ -151,6 +181,54 @@ export default function Index() {
       score: 0,
     },
   ]);
+
+  const mapBackendTypeToFrontend = (backendType: string): string => {
+    switch (backendType) {
+      case "MultipleChoice":
+        return "Multiple Choice";
+      case "TrueFalse":
+        return "True/False";
+      case "ShortAnswer":
+        return "Short Answer";
+      default:
+        return backendType;
+    }
+  };
+
+  useEffect(() => {
+    if (tryout) {
+      setTitle(tryout.title);
+      setDescription(tryout.description);
+      setCategory(tryout.category);
+
+      const startDate = new Date(tryout.startAt);
+      setOpenDate(startDate);
+      setOpenHour(startDate.getHours().toString().padStart(2, "0"));
+      setOpenMinute(startDate.getMinutes().toString().padStart(2, "0"));
+
+      const endDate = new Date(tryout.endAt);
+      setCloseDate(endDate);
+      setCloseHour(endDate.getHours().toString().padStart(2, "0"));
+      setCloseMinute(endDate.getMinutes().toString().padStart(2, "0"));
+
+      setDuration(tryout.duration);
+
+      if (tryout.questions && tryout.questions.length > 0) {
+        const formattedQuestions = tryout.questions.map((q: any) => ({
+          text: q.text,
+          score: q.score,
+          type: mapBackendTypeToFrontend(q.type),
+          correctShortAnswer: q.correctShortAnswer || "",
+          choices:
+            q.choices?.map((c: any) => ({
+              choiceText: c.choiceText,
+              isAnswer: c.isAnswer,
+            })) || [],
+        }));
+        setQuestions(formattedQuestions);
+      }
+    }
+  }, [tryout]);
 
   const handleQuestionTextChange = (index: number, text: string) => {
     const newQuestions = [...questions];
@@ -357,7 +435,6 @@ export default function Index() {
       }));
 
       const formData = new FormData();
-      formData.append("userId", userId);
       formData.append("title", title);
       formData.append("description", description);
       formData.append("category", category);
@@ -391,11 +468,9 @@ export default function Index() {
 
   return (
     <div className="flex flex-col gap-3 justify-start items-center w-full h-fit py-10">
-      <h1 className="text-4xl font-bold">Post a Tryout</h1>
+      <h1 className="text-4xl font-bold">Edit Tryout</h1>
       <Card className="w-[80%]">
         <Form method="post" onSubmit={handleSubmit}>
-          <input type="hidden" name="userId" value={userId} />
-
           <CardContent className="flex flex-col items-start justify-start mt-6 gap-4">
             <div className="w-full">
               <Label htmlFor="title">Title</Label>
@@ -473,9 +548,6 @@ export default function Index() {
                     mode="single"
                     selected={openDate}
                     onSelect={setOpenDate}
-                    disabled={(date) =>
-                      date < new Date(new Date().setHours(0, 0, 0, 0))
-                    }
                     initialFocus
                   />
                 </PopoverContent>
@@ -552,10 +624,7 @@ export default function Index() {
                     mode="single"
                     selected={closeDate}
                     onSelect={setCloseDate}
-                    disabled={(date) =>
-                      date < new Date(new Date().setHours(0, 0, 0, 0)) ||
-                      (openDate ? date < openDate : false)
-                    }
+                    disabled={(date) => (openDate ? date < openDate : false)}
                     initialFocus
                   />
                 </PopoverContent>
@@ -820,7 +889,7 @@ export default function Index() {
               variant={"default"}
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Publishing..." : "Publish Tryout"}
+              {isSubmitting ? "Updating..." : "Update Tryout"}
             </Button>
           </CardDescription>
         </Form>

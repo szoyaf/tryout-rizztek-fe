@@ -41,8 +41,7 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     const data = await response.json();
-    console.log("Submission created:", data);
-
+    
     return redirect(`/tryout/attempt/${tryoutId}`);
   } catch (error) {
     console.error("Error creating submission:", error);
@@ -145,11 +144,13 @@ export default function Index() {
               variant="default"
               disabled={
                 new Date() > new Date(tryout.endAt) ||
+                new Date() < new Date(tryout.startAt) ||
                 isSubmitting ||
-                !!submission.id
+                (submission && !submission.id) ||
+                (submission && !!submission.submittedAt)
               }
             >
-              {submission.id
+              {submission && submission.id
                 ? "Continue Attempt"
                 : isSubmitting
                 ? "Starting..."
@@ -192,15 +193,15 @@ export default function Index() {
                   <p>{submission.score}</p>
                 </div>
               </div>
+              <p>
+                Your final grade:{" "}
+                {submission && submission.score != null
+                  ? (submission.score / totalScore) * 100
+                  : 0}
+                %
+              </p>
             </>
           )}
-          <p>
-            Your final grade:{" "}
-            {submission.score != null
-              ? (submission.score / totalScore) * 100
-              : 0}
-            %
-          </p>
           <Link to="/">
             <Button variant="default">Back to course</Button>
           </Link>

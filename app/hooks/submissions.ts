@@ -34,6 +34,7 @@ export const getSubmission = async (
       submittedAt: submission.submittedAt
         ? submission.submittedAt.split(" ").slice(0, 3).join(" ")
         : null,
+      createdAt: submission.createdAt.split(" ").slice(0, 3).join(" "),
       answers: submission.answers?.map((answer) => ({
         id: answer.id,
         submissionId: answer.submissionId,
@@ -82,30 +83,4 @@ export const submitAnswers = async (
 
     return submission.id;
   }
-};
-
-export const submitAnswer = async (
-  token: string,
-  submissionId: string,
-  questionId: string,
-  choiceId: string,
-  shortAnswer: string
-) => {
-  const API_URL = process.env.SERVER_URL;
-
-  const response = await fetch(`${API_URL}api/submission`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({
-      submissionId,
-      questionId,
-      choiceId,
-      shortAnswer,
-    }),
-  });
-
-  return response.ok;
 };

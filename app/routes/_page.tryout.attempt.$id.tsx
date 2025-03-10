@@ -51,10 +51,7 @@ export async function action({ request }: ActionFunctionArgs) {
       }
     });
 
-    console.log("Answers:", answers);
     const response = await submitAnswers(t, submissionId, answers);
-
-    console.log("Response:", response);
 
     if (!response) {
       return Response.json({
@@ -96,8 +93,11 @@ export async function loader(args: LoaderFunctionArgs) {
   }
 
   const submission = await getSubmission(t, tryout.id, user.id);
+  
+  const endAt = new Date(tryout.endAt).getTime();
+  const startAt = new Date(tryout.startAt).getTime();
 
-  if (!submission || !submission.id || submission.submittedAt) {
+  if (!submission || !submission.id || submission.submittedAt || Date.now() > endAt || Date.now() < startAt) {
     return redirect(`/tryout/view/${tryout.id}`);
   }
 
@@ -191,6 +191,61 @@ export default function Index() {
     setSuccessModalOpen(false);
   };
 
+  const [timeRemaining, setTimeRemaining] = useState<number>(0);
+
+  useEffect(() => {
+    const createdAt = new Date(submission.createdAt).getTime();
+    const duration = tryout.duration * 60 * 1000;
+    const endAt = new Date(tryout.endAt).getTime();
+    const expiryTime = Math.min(createdAt + duration, endAt);
+    const remaining = Math.max(0, expiryTime - Date.now());
+
+    setTimeRemaining(remaining);
+
+    if (remaining <= 0) {
+      handleAutoSubmit();
+      return;
+    }
+
+    const timer = setInterval(() => {
+      const newRemaining = Math.max(0, expiryTime - Date.now());
+      setTimeRemaining(newRemaining);
+
+      if (newRemaining <= 0) {
+        clearInterval(timer);
+        handleAutoSubmit();
+      }
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [submission.createdAt, tryout.duration]);
+
+  const handleAutoSubmit = () => {
+
+    toast("Time's Up!", {
+      description: "Your answers are being submitted automatically.",
+    });
+
+    const formData = new FormData();
+    formData.append("submissionId", submission.id);
+    formData.append("tryoutId", tryout.id);
+    formData.append("answers", JSON.stringify(userAnswers));
+    formData.append("isAutoSubmit", "true");
+
+    submit(formData, {
+      method: "post",
+      action: `/tryout/attempt/${tryout.id}`,
+    });
+  };
+
+  const formatTimeRemaining = () => {
+    const minutes = Math.floor(timeRemaining / 60000);
+    const seconds = Math.floor((timeRemaining % 60000) / 1000);
+    return `${minutes.toString().padStart(2, "0")}:${seconds
+      .toString()
+      .padStart(2, "0")}`;
+  };
+
   return (
     <div className="flex flex-col-reverse lg:grid lg:grid-cols-6 xl:grid-cols-5 gap-3 h-fit min-h-screen py-10 mx-10 lg:mx-20">
       <Card className="lg:col-span-2 xl:col-span-1 w-full h-fit">
@@ -207,7 +262,14 @@ export default function Index() {
             </Button>
           ))}
         </CardContent>
-        <CardDescription className="flex flex-row justify-between p-6 space-y-0">
+        <CardDescription className="flex flex-col justify-center p-6 pt-3 space-y-0">
+          <div
+            className={`text-center font-bold text-sm mb-2 ${
+              timeRemaining < 60000 ? "text-red-500" : ""
+            }`}
+          >
+            Time Remaining: {formatTimeRemaining()}
+          </div>
           <Button
             variant="default"
             onClick={() => setSuccessModalOpen(true)}

@@ -68,6 +68,7 @@ export interface Submission {
   userId: string;
   score?: number | null;
   submittedAt?: string | null;
+  createdAt: string;
   answers: Answer[];
 }
 
