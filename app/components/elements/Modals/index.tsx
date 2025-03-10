@@ -1,9 +1,9 @@
-import * as ModalPrimitive from '@radix-ui/react-dialog';
-import * as React from 'react';
-import { ModalProps } from './interface';
+import * as ModalPrimitive from "@radix-ui/react-dialog";
+import * as React from "react";
+import { ModalProps } from "./interface";
 
-import { XCircle } from 'lucide-react';
-import { cn } from '~/lib/utils';   
+import { XCircle } from "lucide-react";
+import { cn } from "~/lib/utils";
 
 const Modal = ModalPrimitive.Root;
 
@@ -20,7 +20,7 @@ const ModalOverlay = React.forwardRef<
   <ModalPrimitive.Overlay
     ref={ref}
     className={cn(
-      'flex justify-center items-center fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
+      "flex justify-center items-center fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       className
     )}
     {...props}
@@ -30,14 +30,14 @@ ModalOverlay.displayName = ModalPrimitive.Overlay.displayName;
 
 const ModalCenter = React.forwardRef<HTMLDivElement, ModalProps>(
   ({ className, children, closeButton = true, ...props }, ref) => {
-    const closeMargin = closeButton ? 'pt-16' : '';
+    const closeMargin = closeButton ? "pt-16" : "";
     return (
       <ModalPortal>
         <ModalOverlay>
           <div
             ref={ref}
             className={cn(
-              'relative flex flex-col gap-3 w-[289px] md:w-[388px] rounded-[24px] p-10 bg-cyan-50 border border-component-light-border dark:border-component-dark-border',
+              "relative flex flex-col gap-3 w-[289px] md:w-[388px] rounded-[24px] p-10 bg-cyan-50 border border-component-light-border dark:border-component-dark-border",
               className,
               closeMargin
             )}
@@ -58,7 +58,7 @@ const ModalCenter = React.forwardRef<HTMLDivElement, ModalProps>(
     );
   }
 );
-ModalCenter.displayName = 'ModalCenter';
+ModalCenter.displayName = "ModalCenter";
 
 const ModalContent = React.forwardRef<
   HTMLDivElement,
@@ -66,11 +66,11 @@ const ModalContent = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn('font-geologica text-neutral-500', className)}
+    className={cn("font-geologica text-neutral-500", className)}
     {...props}
   />
 ));
-ModalContent.displayName = 'ModalContent';
+ModalContent.displayName = "ModalContent";
 
 const ModalHeader = React.forwardRef<
   HTMLDivElement,
@@ -78,11 +78,11 @@ const ModalHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn('font-tilt-warp text-black dark:text-white', className)}
+    className={cn("font-tilt-warp text-black dark:text-white", className)}
     {...props}
   />
 ));
-ModalHeader.displayName = 'ModalHeader';
+ModalHeader.displayName = "ModalHeader";
 
 export {
   Modal,

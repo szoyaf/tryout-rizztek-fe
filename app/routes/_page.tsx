@@ -1,12 +1,10 @@
-import {
-  LoaderFunctionArgs,
-  redirect,
-} from "@remix-run/node";
+import { LoaderFunctionArgs, redirect } from "@remix-run/node";
 import { Outlet } from "@remix-run/react";
 import { getUserData } from "~/auth/getUserData";
 import { isTokenValid, token } from "~/auth/token";
 import Footer from "~/components/layout/Footer";
 import { Navbar } from "~/components/layout/Navbar";
+import { Toaster } from "~/components/ui/sonner";
 
 const unprotectedRoutes = ["/login", "/register"];
 
@@ -33,6 +31,7 @@ export default function Index() {
       <Navbar />
       <main className="pt-16 max-w-[1920px] mx-auto h-fit min-h-screen overflow-x-hidden">
         <Outlet />
+        <Toaster />
         <Footer />
       </main>
     </main>

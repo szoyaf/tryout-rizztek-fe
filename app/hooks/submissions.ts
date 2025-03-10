@@ -1,4 +1,9 @@
-import { Answer, ApiResponse, GetSubmissionResponse, Submission } from "~/auth/interface";
+import {
+  Answer,
+  ApiResponse,
+  GetSubmissionResponse,
+  Submission,
+} from "~/auth/interface";
 
 export const getSubmission = async (
   token: string,

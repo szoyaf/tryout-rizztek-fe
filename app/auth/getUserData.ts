@@ -29,11 +29,11 @@ export async function getUserData(token: string): Promise<User | null> {
       return null;
     } else {
       const data: GetUserResponse = await response.json();
-      
+
       if (!data.user) {
         return null;
       }
-      
+
       return {
         id: data.user.id,
         email: data.user.email,

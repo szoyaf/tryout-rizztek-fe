@@ -55,7 +55,12 @@ export async function LoginAction({ request }: ActionFunctionArgs) {
     }
 
     return Response.json({
-      errors: { form: error instanceof Error ? error.message : "An unexpected error occurred" },
+      errors: {
+        form:
+          error instanceof Error
+            ? error.message
+            : "An unexpected error occurred",
+      },
       success: false,
     });
   }

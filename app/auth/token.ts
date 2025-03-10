@@ -1,9 +1,9 @@
-import { createCookie } from '@remix-run/node';
+import { createCookie } from "@remix-run/node";
 import * as jwt from "jsonwebtoken";
-import { UserData } from './interface';
+import { UserData } from "./interface";
 
-export const token = createCookie('token', {
-  sameSite: 'lax',
+export const token = createCookie("token", {
+  sameSite: "lax",
   httpOnly: true,
   maxAge: 604_800,
 });
@@ -17,7 +17,7 @@ export const isTokenValid = async (cookie: string) => {
       return false;
     }
 
-    return cookie !== null && cookie !== undefined && cookie !== '';
+    return cookie !== null && cookie !== undefined && cookie !== "";
   } catch (error) {
     return false;
   }
