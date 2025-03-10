@@ -1,24 +1,10 @@
 import { Link, useLoaderData } from "@remix-run/react";
 import { UserData } from "~/auth/interface";
 import { Button } from "../../ui/button";
+import { useLogout } from "~/auth/useLogout";
 
 export const Navbar = () => {
-  const logout = async () => {
-    const token = document.cookie
-      .split("; ")
-      .find((row) => row.startsWith("token="))
-      ?.split("=")[1];
-    const API_URL = process.env.NEXT_PUBLIC_API_URL;
-    if (token) {
-      await fetch(`${API_URL}/logout`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }).then(() => {
-        window.location.reload();
-      });
-    }
-  };
+  const { logout } = useLogout();
 
   const data: {
     isLoggedIn: boolean;

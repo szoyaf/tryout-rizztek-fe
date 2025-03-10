@@ -1,21 +1,24 @@
-import { LoaderFunctionArgs, redirect } from "@remix-run/node";
+import {
+  LoaderFunctionArgs,
+  redirect,
+} from "@remix-run/node";
 import { Outlet } from "@remix-run/react";
-import { getUserData } from '~/auth/getUserData';
-import { isTokenValid, token } from '~/auth/token';
+import { getUserData } from "~/auth/getUserData";
+import { isTokenValid, token } from "~/auth/token";
 import Footer from "~/components/layout/Footer";
 import { Navbar } from "~/components/layout/Navbar";
 
-const unprotectedRoutes = ['/login', '/register'];
+const unprotectedRoutes = ["/login", "/register"];
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const cookieHeader = request.headers.get('Cookie');
+  const cookieHeader = request.headers.get("Cookie");
   const t = await token.parse(cookieHeader);
 
   const url = new URL(request.url);
   const isAuthPage = unprotectedRoutes.includes(url.pathname);
 
   if (!isAuthPage && !(await isTokenValid(t))) {
-    return redirect('/login', {});
+    return redirect("/login", {});
   }
 
   return {
@@ -33,5 +36,5 @@ export default function Index() {
         <Footer />
       </main>
     </main>
-  );  
+  );
 }
